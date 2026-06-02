@@ -165,7 +165,25 @@ class SampleControllerAsync(Node):
 
             print(display_string)
 
-            time.sleep(0.5)    
+            time.sleep(0.5)
+
+    def pupper_comm_test(self):
+        # go left a few times
+        for i in range(2):
+            self.send_move_request("sit")
+
+        # go right a few times
+        for i in range(2):
+            self.send_move_request("unsit")
+
+        # go backward 
+        for i in range(2):
+            self.send_move_request("lay_down")
+
+        # go forward
+        for i in range(2):
+            self.send_move_request("stand_up")
+   
 
 ###
 # Name: Main
