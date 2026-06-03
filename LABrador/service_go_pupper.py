@@ -9,7 +9,7 @@
 #
 # Author: Prof. Riek <lriek@ucsd.edu>
 #
-# Acknowledgements: Used some code from ROS 2 Tutorials and MangDang's ROS git repo 
+# Acknowledgements: Used some code from ROS 2 Tutorials and MangDang's ROS git repo
 #  https://docs.ros.org/en/humble/Tutorials/Beginner-Client-Libraries/Writing-A-Simple-Py-Service-And-Client.html
 #  https://github.com/mangdangroboticsclub/mini_pupper_ros/blob/ros2-dev/mini_pupper_dance/mini_pupper_dance/dance_server.py
 #
@@ -36,22 +36,22 @@ import time   # Is on our side, yes it is. And if you don't know the song, here 
 ####
 # Name: Minimal Service
 #
-# Purpose: "The MinimalService class constructor initializes the node with the name minimal_service. 
+# Purpose: "The MinimalService class constructor initializes the node with the name minimal_service.
 # Then, it creates a service and defines the type, name, and callback.""
 #
-# # Prof Riek Notes: You can call this method whatever you like, this is just the modified ROS tutorial code. 
+# # Prof Riek Notes: You can call this method whatever you like, this is just the modified ROS tutorial code.
 ####
 class MinimalService(Node):
 
     # Constructor
     def __init__(self):
-        # Initialize the node 
+        # Initialize the node
         super().__init__('minimal_service')
 
         # Create the service, defining its type (GoPupper), name (pup_command), and callback.
         self.srv = self.create_service(GoPupper, 'pup_command', self.pup_callback)
-        
-        # publish twist 
+
+        # publish twist
         self.vel_publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
 
         # timer interval (need to wait between messages)
@@ -64,14 +64,14 @@ class MinimalService(Node):
     # Arguments: self, the request (e.g., the command from client), the response (e.g., success)
     #####
     def pup_callback(self, request, response):
-        # We'll be publishing a velocity message. Calling the Twist constructor zeroes it out.  
+        # We'll be publishing a velocity message. Calling the Twist constructor zeroes it out.
         velocity_cmd = Twist()
 
         ## Debug - if you're curious what message this method got, uncomment this out
         #print("In server pup_callback, got this command: %s" % request.command)
 
         ## Here is a set of conditionals - move forward, move_backward, etc, and they send their
-        # respective linear velocity commands accordingly. See Lab 0 / Lab 1 to learn more about this. 
+        # respective linear velocity commands accordingly. See Lab 0 / Lab 1 to learn more about this.
         if (request.command == 'move_forward'):
             velocity_cmd.linear.x = 0.5    # .5 in the linear X direction moves us forward
             self.vel_publisher_.publish(velocity_cmd)   # publish the command
@@ -82,25 +82,25 @@ class MinimalService(Node):
             velocity_cmd.linear.x = -0.5
             self.vel_publisher_.publish(velocity_cmd)
             self.get_logger().info('Publishing: "%s"' % request.command)
-            time.sleep(self.interval)   
+            time.sleep(self.interval)
 
         elif (request.command == 'move_left'):
             velocity_cmd.linear.y = 0.5
             self.vel_publisher_.publish(velocity_cmd)
             self.get_logger().info('Publishing: "%s"' % request.command)
-            time.sleep(self.interval)   
+            time.sleep(self.interval)
 
         elif (request.command == 'move_right'):
             velocity_cmd.linear.y = -0.5
             self.vel_publisher_.publish(velocity_cmd)
             self.get_logger().info('Publishing: "%s"' % request.command)
-            time.sleep(self.interval)   
+            time.sleep(self.interval)
 
         elif (request.command == 'turn_left'):
             velocity_cmd.angular.z = 1.0
             self.vel_publisher_.publish(velocity_cmd)
             self.get_logger().info('Publishing: "%s"' % request.command)
-            time.sleep(self.interval)  
+            time.sleep(self.interval)
 
         elif (request.command == 'turn_right'):
             velocity_cmd.angular.z = -1.0
@@ -108,25 +108,25 @@ class MinimalService(Node):
             self.get_logger().info('Publishing: "%s"' % request.command)
             time.sleep(self.interval)
 
-	    elif (request.command == 'sit'):
+        elif (request.command == 'sit'):
             velocity_cmd.angular.y = 1.0
             self.vel_publisher_.publish(velocity_cmd)
             self.get_logger().info('Publishing: "%s"' % request.command)
             time.sleep(self.interval)
 
-	    elif (request.command == 'unsit'):
+        elif (request.command == 'unsit'):
             velocity_cmd.angular.y = -1.0
             self.vel_publisher_.publish(velocity_cmd)
             self.get_logger().info('Publishing: "%s"' % request.command)
-            time.sleep(self.interval) 
+            time.sleep(self.interval)
 
-	    elif (request.command == 'lay_down'):
+        elif (request.command == 'lay_down'):
             velocity_cmd.linear.z = -1.0
             self.vel_publisher_.publish(velocity_cmd)
             self.get_logger().info('Publishing: "%s"' % request.command)
             time.sleep(self.interval)
 
-	    elif (request.command == 'stand_up'):
+        elif (request.command == 'stand_up'):
             velocity_cmd.linear.z = 1.0
             self.vel_publisher_.publish(velocity_cmd)
             self.get_logger().info('Publishing: "%s"' % request.command)
@@ -152,21 +152,21 @@ class MinimalService(Node):
 # Name: Main
 # Purpose: Main functoin to set up our service
 #####
-    def main():
-        # Initialize the python client library in ROS 2
-        rclpy.init()
+def main():
+    # Initialize the python client library in ROS 2
+    rclpy.init()
 
-        # Instatiate the class & create the node for the service
-        minimal_service = MinimalService()
+    # Instatiate the class & create the node for the service
+    minimal_service = MinimalService()
 
-        # Spin the node - this will handle call backs
-        rclpy.spin(minimal_service)
+    # Spin the node - this will handle call backs
+    rclpy.spin(minimal_service)
 
-        # Destroy the node when we're done with it
-        minimal_service.destroy_node()
+    # Destroy the node when we're done with it
+    minimal_service.destroy_node()
 
-        # Shutdown
-        rclpy.shutdown()
+    # Shutdown
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':

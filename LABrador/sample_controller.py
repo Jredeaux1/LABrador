@@ -194,7 +194,7 @@ def main():
     sample_controller = SampleControllerAsync()
 
     # send commands to do the conga dance
-    sample_controller.task4()
+    sample_controller.pupper_comm_test()
 
     # This spins up a client node, checks if it's done, throws an exception of there's an issue
     # (Probably a bit redundant with other code and can be simplified. But right now it works, so ¯\_(ツ)_/¯)
