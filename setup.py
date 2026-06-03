@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'LABrador'
+package_name = 'labrador'
 
 setup(
     name=package_name,
