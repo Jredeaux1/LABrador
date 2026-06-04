@@ -106,6 +106,9 @@ class SampleControllerAsync(Node):
         sound_file = self.sound_address + "/minecraft-dog-bark.mp3"
         pygame.mixer.music.load(sound_file)
         pygame.mixer.music.play()
+        self.show_face(self.img_address+"/dogplayful.jpeg")
+        while pygame.mixer.music.get_busy(): 
+            time.sleep(0.1)
         
     def process_command(self, command):
         commands = {
@@ -238,6 +241,9 @@ class SampleControllerAsync(Node):
 def main():
     rclpy.init()
     sample_controller = SampleControllerAsync()
+    
+    # start listening to voice commands on a loop
+    sample_controller.listen_for_commands() # new code
 
     # send commands to do the conga dance
     sample_controller.pupper_comm_test()
@@ -261,7 +267,7 @@ def main():
     # Destroy node and shut down
     sample_controller.destroy_node()
     rclpy.shutdown()
-
+    
     #from display test
     self.disp = Display()
     self.MAX_WIDTH = 320
