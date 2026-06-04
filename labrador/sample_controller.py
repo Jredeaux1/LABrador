@@ -99,6 +99,37 @@ class SampleControllerAsync(Node):
         return self.future.result()
 
     ###
+    # Name
+    #
+    ####
+    def play_bark(self):
+        sound_file = self.sound_address + "/minecraft-dog-bark.mp3"
+        pygame.mixer.music.load(sound_file)
+        pygame.mixer.music.play()
+        
+    def process_command(self, command):
+        commands = {
+            "speak": self.play_bark,
+            "dance": self.pupper_conga_dance
+        }
+        if command in commands:
+            commands[command]()
+        else:
+            print("Unknown command:", command)
+
+    def listen_for_commands(self):
+        while True:
+            with self.microphone as source:
+                print("Listening...")
+                audio = self.recognizer.listen(source)
+            try:
+                command = self.recognizer.recognize_google(audio).lower()
+                print("Command:", command)
+                self.process_command(command)
+            
+            except sr.UnknownValueError:
+                print("Could not understand audio")
+    ###
     # Name: pupper_conga_dance
     # Purpose: Try to make the robot do the Conga (salsa), as per Gloria Estefan. We don't
     #          have a robot choreopgraher here so we'll just do our best.
