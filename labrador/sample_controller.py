@@ -68,8 +68,8 @@ class SampleControllerAsync(Node):
          # Initialize audio engine (pygame mixer)
         pygame.mixer.init()
 
-        self.img_address = "/home/ubuntu/ros2_ws/src/labrador/labrador/my_images"
-        self.sound_address = "/home/ubuntu/ros2_ws/src/labrador/labrador/sounds"
+        self.img_address = "/home/ubuntu/ros2_ws/src/labrador/my_images"
+        self.sound_address = "/home/ubuntu/ros2_ws/src/labrador/sounds"
 
          # Initialize speech recognition
         self.recognizer = sr.Recognizer()
@@ -243,7 +243,7 @@ def main():
     sample_controller = SampleControllerAsync()
     
     # start listening to voice commands on a loop
-    sample_controller.listen_for_commands() # new code
+    sample_controller.listen_for_commands() 
 
     # send commands to do the conga dance
     sample_controller.pupper_comm_test()
