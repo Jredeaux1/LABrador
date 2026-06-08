@@ -20,6 +20,8 @@ import pygame
 # Our custom interface, GoPupper. This specifies the message type (commands).
 from pupper_interfaces.srv import GoPupper
 
+from geometry_msgs.msg import Pose
+
 # Packages to let us create nodes and spin them up
 import rclpy
 from rclpy.node import Node
@@ -54,6 +56,7 @@ class SampleControllerAsync(Node):
 
         # Create a new request object.
         self.req = GoPupper.Request()
+        self.pose_pub = self.create_publisher(Pose, '/body_pose', 10)
 
         # Create display
         self.disp = Display()
@@ -110,25 +113,53 @@ class SampleControllerAsync(Node):
         while pygame.mixer.music.get_busy(): 
             time.sleep(0.1)
 
-    def play_dead(self):
-        self.send_move_request("lay_down")
-        self.show_face(self.img_address+"/skull.png")
-        time.sleep(3)
-        self.show_face(self.img_address+"restingFace.jpeg")
-
     def spin_around(self):
-        self.send_move_request("stand_up")
-        for i in range(5):
+        pose = Pose()
+        pose.orientation.w = 1.0
+        self.pose_pub.publish(pose)
+        self.show_face(self.img_address+"/dogplayful.jpeg")
+        time.sleep(3)
+        for i in range(30):
             self.send_move_request("turn_left")
-        
+
+    def play_dead(self): 
+        self.show_face(self.img_address+"/skull.png") 
+        pose = Pose()
+        pose.position.z = -0.55
+        pose.orientation.w = 1.0
+        self.pose_pub.publish(pose) 
+
+    def sit_down(self): 
+        self.show_face(self.img_address+"/dogplayful.jpeg") 
+        pose = Pose()
+        pose.position.z = -0.04
+        pose.orientation.y = -0.15
+        pose.orientation.w = 0.98
+        self.pose_pub.publish(pose)
+
+    def lay_down(self): 
+        self.show_face(self.img_address+"/dogplayful.jpeg")         
+        pose = Pose()
+        pose.position.z = -0.55
+        pose.orientation.w = 1.0
+        self.pose_pub.publish(pose)
+
+    def stand_up(self):
+        self.show_face(self.img_address+"/dogplayful.jpeg")
+        pose = Pose()
+        pose.orientation.w = 1.0
+        self.pose_pub.publish(pose)
+
+ 
     def process_command(self, command):
         commands = {
             "speak": self.play_bark,
             "dance": self.pupper_conga_dance,
-            "sit": self.send_move_request("sit"),
-            "down": self.send_move_request("lay_down"),
+            "down": self.sit_down,
+            "flat": self.lay_down,
             "dead": self.play_dead,
-            "spin": self.spin_around
+            "spin": self.spin_around,
+            "stand": self.stand_up
         }
         if command in commands:
             commands[command]()
@@ -154,7 +185,11 @@ class SampleControllerAsync(Node):
     # Arguments:  self (reference the current class) -- /not sure if needed, but won't hurt/
     #####
     def pupper_conga_dance(self):
-        self.send_move_request("stand_up")
+        self.show_face(self.img_address+"/dogplayful.jpeg")
+        pose = Pose()
+        pose.orientation.w = 1.0
+        self.pose_pub.publish(pose)
+
         # go left a few times
         for i in range(2):
             self.send_move_request("move_left")

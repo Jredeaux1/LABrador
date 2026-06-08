@@ -54,8 +54,8 @@ class MinimalService(Node):
         # publish twist
         self.vel_publisher_ = self.create_publisher(Twist, 'cmd_vel', 10)
 
-	# publish pose
-	self.pose_publisher_ = self.create_publisher(Pose, 'cmd_pose', 10)
+	    # publish pose
+        self.pose_publisher_ = self.create_publisher(Pose, 'cmd_pose', 10)
 
         # timer interval (need to wait between messages)
         self.interval = 0.5  # .5 seconds
@@ -69,7 +69,7 @@ class MinimalService(Node):
     def pup_callback(self, request, response):
         # We'll be publishing a velocity message. Calling the Twist constructor zeroes it out.
         velocity_cmd = Twist()
-	pose_cmd = Pose()
+        pose_cmd = Pose()
 
         ## Debug - if you're curious what message this method got, uncomment this out
         #print("In server pup_callback, got this command: %s" % request.command)
@@ -113,24 +113,49 @@ class MinimalService(Node):
             time.sleep(self.interval)
 
         elif (request.command == 'sit'):
+            pose_cmd.position.x = 0.0
+            pose_cmd.position.y = 0.0
             pose_cmd.position.z = -0.04
+            pose_cmd.orientation.x = 0.0
             pose_cmd.orientation.y = -0.15
+            pose_cmd.orientation.z = 0.0
             pose_cmd.orientation.w = 0.98
-            self.pose_publisher_.publish(pose_cmd)
-            self.get_logger().info('Publishing: "%s"' % request.command)
-            time.sleep(self.interval)
+            
+            # Loop 20 times to bypass the robot's watchdog timeout
+            for _ in range(20):
+                self.pose_publisher_.publish(pose_cmd)
+                time.sleep(0.05) # Publishes at 20Hz for 1 second total
+            self.get_logger().info('Finished streaming: "%s"' % request.command)
 
         elif (request.command == 'lay_down'):
+            pose_cmd.position.x = 0.0
+            pose_cmd.position.y = 0.0
             pose_cmd.position.z = -0.35
-            self.pose_publisher_.publish(pose_cmd)
-            self.get_logger().info('Publishing: "%s"' % request.command)
-            time.sleep(self.interval)
+            pose_cmd.orientation.x = 0.0
+            pose_cmd.orientation.y = 0.0
+            pose_cmd.orientation.z = 0.0
+            pose_cmd.orientation.w = 1.0
+            
+            # Loop 20 times to bypass the robot's watchdog timeout
+            for _ in range(20):
+                self.pose_publisher_.publish(pose_cmd)
+                time.sleep(0.05)
+            self.get_logger().info('Finished streaming: "%s"' % request.command)
 
         elif (request.command == 'stand_up'):
-            pose_cmd = Pose()
-            self.pose_publisher_.publish(pose_cmd)
-            self.get_logger().info('Publishing: "%s"' % request.command)
-            time.sleep(self.interval)
+            pose_cmd.position.x = 0.0
+            pose_cmd.position.y = 0.0
+            pose_cmd.position.z = 0.0
+            pose_cmd.orientation.x = 0.0
+            pose_cmd.orientation.y = 0.0
+            pose_cmd.orientation.z = 0.0
+            pose_cmd.orientation.w = 1.0
+            
+            # Loop 20 times to bypass the robot's watchdog timeout
+            for _ in range(20):
+                self.pose_publisher_.publish(pose_cmd)
+                time.sleep(0.05)
+            self.get_logger().info('Finished streaming: "%s"' % request.command)
 
         elif (request.command == 'stay'):
             time.sleep(self.interval)  # do nothing
