@@ -109,11 +109,26 @@ class SampleControllerAsync(Node):
         self.show_face(self.img_address+"/dogplayful.jpeg")
         while pygame.mixer.music.get_busy(): 
             time.sleep(0.1)
+
+    def play_dead(self):
+        self.send_move_request("lay_down")
+        self.show_face(self.img_address+"/skull.png")
+        time.sleep(3)
+        self.show_face(self.img_address+"restingFace.jpeg")
+
+    def spin_around(self):
+        self.send_move_request("stand_up")
+        for i in range(5):
+            self.send_move_request("turn_left")
         
     def process_command(self, command):
         commands = {
             "speak": self.play_bark,
-            "dance": self.pupper_conga_dance
+            "dance": self.pupper_conga_dance,
+            "sit": self.send_move_request("sit"),
+            "down": self.send_move_request("lay_down"),
+            "dead": self.play_dead,
+            "spin": self.spin_around
         }
         if command in commands:
             commands[command]()
@@ -139,6 +154,7 @@ class SampleControllerAsync(Node):
     # Arguments:  self (reference the current class) -- /not sure if needed, but won't hurt/
     #####
     def pupper_conga_dance(self):
+        self.send_move_request("stand_up")
         # go left a few times
         for i in range(2):
             self.send_move_request("move_left")
