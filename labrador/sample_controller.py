@@ -70,6 +70,7 @@ class SampleControllerAsync(Node):
         
          # Initialize audio engine (pygame mixer)
         pygame.mixer.init()
+        pygame.mixer.music.set_volume(1.0)
 
         self.img_address = "/home/ubuntu/ros2_ws/src/labrador/my_images"
         self.sound_address = "/home/ubuntu/ros2_ws/src/labrador/sounds"
@@ -161,19 +162,27 @@ class SampleControllerAsync(Node):
             "spin": self.spin_around,
             "stand": self.stand_up
         }
-        if command in commands:
-            commands[command]()
-        else:
-            print("Unknown command:", command)
+        for keyword, action in commands.items():
+            if keyword in command:
+                print("Matched command:", keyword)
+                action()
+                return     
+            else:
+                print("Unknown command:", command)
 
     def listen_for_commands(self):
+        with self.microphone as source:
+            print("Calibrating microphone...")
+            self.recognizer.adjust_for_ambient_noise(source, duration =1)
+            self.recognizer.energy_threshold += 300 
+                  
         while True:
             with self.microphone as source:
                 print("Listening...")
-                audio = self.recognizer.listen(source)
+                audio = self.recognizer.listen(source, timeout=5, phase_time_limit=4)
             try:
                 command = self.recognizer.recognize_google(audio).lower()
-                print("Command:", command)
+                print("Heard:", command)
                 self.process_command(command)
             
             except sr.UnknownValueError:
