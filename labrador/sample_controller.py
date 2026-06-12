@@ -1,13 +1,13 @@
 ########
 # Name: sample_controller
 #
-# Purpose: A sample Pupper controller. Will move the robot around a bit then stop.
+# Purpose: Main controller for LABrador. Listens for voice input
+#          and coordinates movement, facial display, and audio
+#          feedback to create an interactive companion robot.
 #
-# Author: Prof. Riek <lriek@ucsd.edu>
+# Author: JayLynne Redeaux (Jredeaux@ucsd.edu) & Mack Markham (mmarkham@ucsd.edu) 
 #
-# Date: 30 April 2024
-#
-# Prof. Riek Notes: Feel free to use this as starter code for the rest of the lab.
+# Date: 11, June 2026
 #####################
 
 #Imports for voice recognition 
@@ -26,9 +26,6 @@ from geometry_msgs.msg import Pose
 import rclpy
 from rclpy.node import Node
 
-#Imports from touch test
-import RPi.GPIO as GPIO
-import time
 
 #Imports from display test
 from MangDang.mini_pupper.display import Display, BehaviorState
@@ -60,32 +57,17 @@ class SampleControllerAsync(Node):
 
         # Create display
         self.disp = Display()
-
-        # There are 4 areas for touch actions
-        # Each GPIO to each touch area
-        self.touchPin_Front = 6
-        self.touchPin_Left  = 3
-        self.touchPin_Right = 16
-        self.touchPin_Back  = 2
         
-         # Initialize audio engine (pygame mixer)
+        # Initialize audio engine (pygame mixer)
         pygame.mixer.init()
 
         self.img_address = "/home/ubuntu/ros2_ws/src/labrador/my_images"
         self.sound_address = "/home/ubuntu/ros2_ws/src/labrador/sounds"
 
-         # Initialize speech recognition
+        # Initialize speech recognition
         self.recognizer = sr.Recognizer()
         self.microphone = sr.Microphone()
 
-        # Use GPIO number but not PIN number
-        GPIO.setmode(GPIO.BCM)
-
-        # Set up GPIO numbers to input
-        GPIO.setup(self.touchPin_Front, GPIO.IN)
-        GPIO.setup(self.touchPin_Left,  GPIO.IN)
-        GPIO.setup(self.touchPin_Right, GPIO.IN)
-        GPIO.setup(self.touchPin_Back,  GPIO.IN)
 
     ###
     # Name: send_move_request
@@ -102,8 +84,10 @@ class SampleControllerAsync(Node):
         return self.future.result()
 
     ###
-    # Name
-    #
+    # Name: play_bark
+    # Purpose: Have the robot output a bark MP3 audio 
+    # Arguments:  
+    #     self    - reference to the current SampleControllerAsync object
     ####
     def play_bark(self):
         sound_file = self.sound_address + "/minecraft-dog-bark.mp3"
@@ -112,7 +96,12 @@ class SampleControllerAsync(Node):
         self.show_face(self.img_address+"/dogplayful.jpeg")
         while pygame.mixer.music.get_busy(): 
             time.sleep(0.1)
-
+    ###
+    # Name: spin_around
+    # Purpose: Have the robot spin as best as it can 
+    # Arguments: 
+    #     self    - reference to the current SampleControllerAsync object
+    ####
     def spin_around(self):
         pose = Pose()
         pose.orientation.w = 1.0
@@ -121,7 +110,13 @@ class SampleControllerAsync(Node):
         time.sleep(3)
         for i in range(30):
             self.send_move_request("turn_left")
-
+    ###
+    # Name: play_dead
+    # Purpose: Have the robot "play dead" which combines
+    # turning the screen to a skull image and laying down
+    # Arguments:  
+    #     self    - reference to the current SampleControllerAsync object
+    ####
     def play_dead(self): 
         self.show_face(self.img_address+"/skull.png") 
         pose = Pose()
@@ -129,6 +124,13 @@ class SampleControllerAsync(Node):
         pose.orientation.w = 1.0
         self.pose_pub.publish(pose) 
 
+    ###
+    # Name: sit_down
+    # Purpose: Have the robot sit (Rear legs crouching) 
+    # face is turned to the playful dog image again
+    # Arguments:  
+    #     self    - reference to the current SampleControllerAsync object
+    ####
     def sit_down(self): 
         self.show_face(self.img_address+"/dogplayful.jpeg") 
         pose = Pose()
@@ -136,21 +138,40 @@ class SampleControllerAsync(Node):
         pose.orientation.y = -0.15
         pose.orientation.w = 0.98
         self.pose_pub.publish(pose)
-
+        
+    ###
+    # Name: lay_down
+    # Purpose: Have the robot lay down (all legs crouching) 
+    # face is turned to the playful dog image again
+    # Arguments:  
+    ####
     def lay_down(self): 
         self.show_face(self.img_address+"/dogplayful.jpeg")         
         pose = Pose()
         pose.position.z = -0.55
         pose.orientation.w = 1.0
         self.pose_pub.publish(pose)
-
+        
+    ###
+    # Name: stand_up
+    # Purpose: Have the robot stand back up, called after lay/sit/play_dead 
+    # face is turned to the playful dog image again
+    # Arguments:  self (reference the current class)
+    ####
     def stand_up(self):
         self.show_face(self.img_address+"/dogplayful.jpeg")
         pose = Pose()
         pose.orientation.w = 1.0
         self.pose_pub.publish(pose)
 
- 
+    ###
+    # Name: process_command
+    # Purpose: Matches a recognized voice command to its corresponding
+    #          robot behavior and executes the associated function.
+    # Arguments:
+    #     self    - reference to the current SampleControllerAsync object
+    #     command - string containing the recognized voice command
+    ####
     def process_command(self, command):
         commands = {
             "speak": self.play_bark,
@@ -165,7 +186,14 @@ class SampleControllerAsync(Node):
             commands[command]()
         else:
             print("Unknown command:", command)
-
+    ###
+    # Name: listen_for_commands
+    # Purpose: Continuously listens for spoken user commands, converts
+    #          speech to text using Google's Speech Recognition API,
+    #          and passes recognized commands to the command processor.
+    # Arguments:
+    #     self - reference to the current SampleControllerAsync object
+    ####
     def listen_for_commands(self):
                   
         while True:
@@ -231,64 +259,10 @@ class SampleControllerAsync(Node):
         # Display it on Pupper's LCD dis
         self.disp.show_image(newFileLoc)
 
-    def task4(self):
-        while True:
-            touchValue_Front = GPIO.input(self.touchPin_Front)
-            touchValue_Back = GPIO.input(self.touchPin_Back)
-            touchValue_Left = GPIO.input(self.touchPin_Left)
-            touchValue_Right = GPIO.input(self.touchPin_Right)
-
-            display_string = ''
-
-            if not touchValue_Front:
-                display_string += ' Front'
-                self.send_move_request("move_forward")
-                self.show_face(self.img_address+"/forwardeyes.png")
-
-            if not touchValue_Back:
-                display_string += ' Back'
-                self.send_move_request("move_backward")
-                self.show_face(self.img_address+"/downeyes.png")
-
-            if not touchValue_Right:
-                display_string += ' Right'
-                self.send_move_request("move_right")
-                self.show_face(self.img_address+"/righteyes.jpg")
-
-            if not touchValue_Left:
-                display_string += ' Left'
-                self.send_move_request("move_left")
-                self.show_face(self.img_address+"/lefteyes.png")
-
-            if display_string == '':
-                display_string = 'No button touched'
-                self.show_face(self.img_address+"/sleepyeyes.jpg")
-
-            print(display_string)
-
-            time.sleep(0.5)
-
-    def pupper_comm_test(self):
-        # go left a few times
-        for i in range(2):
-            self.send_move_request("sit")
-
-        # go right a few times
-        for i in range(2):
-            self.send_move_request("unsit")
-
-        # go backward 
-        for i in range(2):
-            self.send_move_request("lay_down")
-
-        # go forward
-        for i in range(2):
-            self.send_move_request("stand_up")
    
-
 ###
 # Name: Main
-# Purpose: Main function. Going to try to have the robot dance salsa. 
+# Purpose: Main function.  
 #####
 def main():
     rclpy.init()
